@@ -1,0 +1,10 @@
+.containerchild {
+  float: left;
+  margin-right: 5px;
+}
+
+.queryform select {
+  display: block;
+  box-sizing: border-box;
+  vertical-align: middle;
+}

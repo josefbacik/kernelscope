@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="http://spiermar.github.io/d3-flame-graph/d3.flameGraph.css">
+		<link rel="stylesheet" type="text/css" href="kernelscope.css">
+  </head>
+  <body onload="initialLoad()">
+    <div class="container">
+			<div class="containerchild" id="queryform">
+				<form class="queryform" action="/api" method="POST" id="myform">
+				</form>
+				<a href="javascript:submitForm()">Submit</a>
+			</div>
+      <div class="containerchild" id="chart">
+      </div>
+    </div>
+
+    <script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
+    <script type="text/javascript" src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+    <script type="text/javascript" src="d3.flameGraph.js"></script>
+
+    <script type="text/javascript">
+		var categories;
+    var flameGraph = d3.flameGraph()
+      .height(480)
+      .width(960)
+      .cellHeight(18)
+      .transitionDuration(750)
+      .transitionEase('cubic-in-out')
+      .sort(true)
+      //Example to sort in reverse order
+      //.sort(function(a,b){ return d3.descending(a.name, b.name);})
+      .title("");
+
+    // Example on how to use custom tooltips using d3-tip.
+    var tip = d3.tip()
+      .direction("s")
+      .offset([8, 0])
+      .attr('class', 'd3-flame-graph-tip')
+      .html(function(d) { return "name: " + d.name + ", value: " + d.value; });
+
+    flameGraph.tooltip(tip);
+
+    // Example on how to use custom labels
+    // var label = function(d) {
+    //  return "name: " + d.name + ", value: " + d.value;
+    // }
+
+    // flameGraph.label(label);
+		
+//    d3.json("stacks.json", function(error, data) {
+//      if (error) return console.warn(error);
+//      d3.select("#chart")
+//          .datum(data)
+//          .call(flameGraph);
+//    });
+
+		function flameGraphQuery(data) {
+			var xhr = new XMLHttpRequest();
+			xhr.open("POST", "/api", true);
+			xhr.setRequestHeader('Content-type', 'application/json');
+			xhr.onreadystatechange = function (e) {
+				if (xhr.readyState === 4) {
+					if (xhr.status === 200) {
+						var jsonResponse = JSON.parse(xhr.responseText);
+						d3.select("#chart")
+							.datum(jsonResponse)
+							.call(flameGraph);
+					} else {
+						console.log("Error");
+					}
+				}
+			};
+
+			var str = JSON.stringify(data);
+			xhr.send(str);
+		}
+
+		function generateQueryForm() {
+			var form = document.getElementById("myform");
+			var catlist = document.createElement("select");
+			var elemlist = document.createElement("select");
+			var exprlist = document.createElement("select");
+			var exprs = [ "=", "<", "<=", ">", ">=", "!=", "contains" ];
+			var input = document.createElement("input");
+
+			catlist.setAttribute("id", "category");
+			elemlist.setAttribute("id", "elems");
+			exprlist.setAttribute("id", "expr");
+			input.setAttribute("id", "constraintValue");
+			for (var key in categories) {
+				if (categories.hasOwnProperty(key)) {
+					catlist.appendChild(new Option(key, key));
+					for (var i = 0; i < categories[key].length; i++) {
+						elemlist.appendChild(new Option(categories[key][i], categories[key][i]));
+					}
+				}
+			}
+			for (var i = 0; i < exprs.length; i++) {
+						exprlist.appendChild(new Option(exprs[i], exprs[i]));
+			}
+			form.appendChild(catlist);
+			form.appendChild(elemlist);
+			form.appendChild(exprlist);
+			form.appendChild(input);
+		}
+
+		function initialLoad() {
+			var data = {};
+			var constraint = {};
+
+			constraint["format"] = "flamegraph";
+			constraint["elements"] = ["stack", "elapsed"];
+			data["offcputime"] = constraint;
+
+			flameGraphQuery(data);
+
+			var xhr = new XMLHttpRequest();
+			xhr.open("GET", "/api/getcategories");
+			xhr.onreadystatechange = function (e) {
+				if (xhr.readyState === 4) {
+					if (xhr.status === 200) {
+						categories = JSON.parse(xhr.responseText);
+						generateQueryForm();
+					} else {
+						console.log("Error");
+					}
+				}
+			};
+			xhr.send(null);
+		}
+
+    function submitForm() {
+      var data = {};
+      var category;
+      var constraint = {};
+			var form = document.getElementById("myform");
+			var elements = [ "stack", "elapsed" ];
+			var condition = {};
+
+			console.log(form.elements);
+			console.log(form.elements["elems"].value);
+			console.log(form.elements["constraintValue"].value);
+			var elem = form.elements["elems"].value;
+			var cond = form.elements["constraintValue"].value;
+			condition[elem] = cond;
+			condition["expr"] = form.elements["expr"].value;
+
+      for (var i = 0; i < form.length; i++) {
+        var input = form.elements[i];
+				console.log("I is " + i);
+				console.log("Id is " + input.id + " value is " + input.value);
+        if (!input.id.localeCompare('category')) {
+					console.log("The value is " + input.value);
+          category = input.value;
+				} else if (input.id) {
+					if (!input.name.localeCompare('e')) {
+						elements.push(input.value);
+					}
+				}
+			}
+
+			constraint['elements'] = elements;
+			constraint['format'] = "flamegraph";
+			if (cond) {
+				constraint['constraints'] = [ { "conditions": [ condition ] } ];
+			}
+			data[category] = constraint;
+
+			flameGraphQuery(data);
+    }
+    </script>
+
+  </body>
+</html>
