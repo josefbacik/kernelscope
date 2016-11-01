@@ -8,10 +8,20 @@ import signal
 import platform
 import re
 import socket
+import argparse
 
+parser = argparse.ArgumentParser(description="Log stacktraces and times when we are off the cpu")
+parser.add_argument("--threshold", type=int, help="only catch things that sleep for this many usecs")
+parser.add_argument("--sleeptype", type=int, help="only log certain sleep types, based on TASK_* states")
+parser.add_argument("--logger", help="the url for the logger service")
 
-threshold = 5000
-sleep_type = 2
+args = parser.parse_args()
+if not args.logger:
+    print("Must specify a logger service url")
+    exit(1)
+threshold = 0
+if args.threshold:
+    threshold = args.threshold
 
 duration = 60
 debug = 0
@@ -36,7 +46,6 @@ struct key_t {
 BPF_HASH(counts, struct key_t);
 BPF_HASH(start, u32);
 
-BPF_HASH(wokeby, u32, struct wokeby_t);
 BPF_STACK_TRACE(stackmap, 10000)
 
 int oncpu(struct pt_regs *ctx, struct task_struct *p) {
@@ -76,10 +85,11 @@ int oncpu(struct pt_regs *ctx, struct task_struct *p) {
     return 0;
 }
 """
+
 bpf_text = bpf_text.replace('MINBLOCK_US', str(threshold))
 sleep_type_filter = '1'
-if sleep_type > 0:
-    sleep_type_filter = ('p->state == %d' % (sleep_type))
+if args.sleeptype:
+    sleep_type_filter = ('p->state == %d' % (args.sleeptype))
 bpf_text = bpf_text.replace('SLEEP_TYPE_FILTER', sleep_type_filter)
 if debug:
     print(bpf_text)
@@ -92,7 +102,7 @@ if matched != 1:
     print("%d functions traced. Exiting." % (matched))
     exit()
 
-logger = KernelscopeLogger("http://localhost:8080")
+logger = KernelscopeLogger(args.logger)
 done = 0
 # output
 while (done == 0):
@@ -124,7 +134,7 @@ while (done == 0):
             'elapsed': v.value,
             'stack': ";".join(sleep_trace),
         }
-        logger.add_entry(data)
+        logger.add_entry('offcputime', data)
     logger.submit()
     counts.clear()
     stacks.clear()

@@ -1,6 +1,7 @@
 import MySQLdb
 import Constraints
 import FlameGraph
+import Database
 
 # This is where you add tablename and columns
 _categories = {}
@@ -12,7 +13,7 @@ def _insert_entry(db, category, entry):
         if k in _categories[category]:
             columns.append(k)
     cmd = "INSERT INTO " + category + " (" + ",".join(columns) + ") VALUES ("
-    cmd += "%s," * len(columns)
+    cmd += (db.arg_str() + ",") * len(columns)
     cmd = cmd[:-1]
     cmd += ")"
     values = []
@@ -36,17 +37,16 @@ def _load(db, category, query):
 
     cmd = "SELECT " + ",".join(columns)
     cmd += " FROM " + category
-    (constraintstr, constraintargs) = Constraints.build_constraints(query, _categories[category])
+    (constraintstr, constraintargs) = Constraints.build_constraints(db, query, _categories[category])
     if len(constraintstr) > 0:
         cmd += " WHERE " + constraintstr
     if 'limit' in query:
-        cmd += " LIMIT %s"
+        cmd += " LIMIT " + db.arg_str()
         constraintargs += (query['limit'],)
     print cmd
     print constraintargs
     cur = db.cursor()
     cur.execute(cmd, constraintargs)
-    retval = {}
     return cur.fetchall()
 
 def dump(db, obj):

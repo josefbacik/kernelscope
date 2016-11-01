@@ -32,9 +32,13 @@ def build_flamegraph(values):
     stack_key = ""
     value_key = ""
     for k,v in values[0].items():
-        if type(v) == str and stack_key == "" and ";" in v:
-            stack_key = k
-            continue
+        try:
+            if stack_key == "" and ";" in v:
+                stack_key = k
+                continue
+        except:
+            pass
+
         if value_key != "":
             continue
         try:

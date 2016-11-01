@@ -1,9 +1,11 @@
+import Database
+
 _valid_constraints = ('=', '<', '<=', '>', '>=', '!=', 'contains')
 
 # TODO: should probably throw errors for the various incorrect statement
 # building, but for now assume we are perfect and just silently ignore invalid
 # queries
-def build_constraints(query, valid_columns):
+def build_constraints(db, query, valid_columns):
     if 'constraints' not in query:
         return ('', ())
     constraints = query['constraints']
@@ -59,7 +61,7 @@ def build_constraints(query, valid_columns):
 
             cur_strs.append(column)
             cur_strs.append(expr)
-            cur_strs.append("%s")
+            cur_strs.append(db.arg_str())
             args.append(value)
 
         # Right now just AND all groups together, not sure if this will ever
