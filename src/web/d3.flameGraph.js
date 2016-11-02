@@ -11,7 +11,9 @@
       title = "", // graph title
       transitionDuration = 750,
       transitionEase = "cubic-in-out", // tooltip offset
-      sort = true;
+      sort = true,
+      reversed = false, // reverse the graph direction
+      clickHandler = null;
 
     var tip = d3.tip()
       .direction("s")
@@ -42,6 +44,10 @@
     function name(d) {
       return d.name;
     }
+    
+    var colorMapper = function(d) {
+    	return d.highlight ? "#E600E6" : colorHash(d.name); 
+    };
 
     function generateHash(name) {
       // Return a vector (0.0->1.0) that is a hash of the input string.
@@ -158,30 +164,41 @@
       show(d);
       fadeAncestors(d);
       update();
+      if (typeof clickHandler === 'function') {
+        clickHandler(d);
+      }
     }
 
     function searchTree(d, term) {
       var re = new RegExp(term),
-          label = d.name;
+          searchResults = [];
 
-      if(d.children) {
-        d.children.forEach(function(child) {
-          searchTree(child, term);
-        });
+      function searchInner(d) {
+        var label = d.name;
+
+        if (d.children) {
+          d.children.forEach(function (child) {
+            searchInner(child);
+          });
+        }
+
+        if (label.match(re)) {
+          d.highlight = true;
+          searchResults.push(d);
+        } else {
+          d.highlight = false;
+        }
       }
 
-      if (label.match(re)) {
-        d.highlight = true;
-      } else {
-        d.highlight = false;
-      }
+      searchInner(d);
+      return searchResults;
     }
 
     function clear(d) {
       d.highlight = false;
       if(d.children) {
         d.children.forEach(function(child) {
-          clear(child, term);
+          clear(child);
         });
       }
     }
@@ -217,7 +234,8 @@
         g.transition()
           .duration(transitionDuration)
           .ease(transitionEase)
-          .attr("transform", function(d) { return "translate(" + x(d.x) + "," + (h - y(d.depth) - c) + ")"; });
+          .attr("transform", function(d) { return "translate(" + x(d.x) + ","
+            + (reversed ? y(d.depth) : (h - y(d.depth) - c)) + ")"; });
 
         g.select("rect").transition()
           .duration(transitionDuration)
@@ -226,7 +244,8 @@
 
         var node = g.enter()
           .append("svg:g")
-          .attr("transform", function(d) { return "translate(" + x(d.x) + "," + (h - y(d.depth) - c) + ")"; });
+          .attr("transform", function(d) { return "translate(" + x(d.x) + ","
+            + (reversed ? y(d.depth) : (h - y(d.depth) - c)) + ")"; });
 
         node.append("svg:rect")
           .attr("width", function(d) { return d.dx * kx; });
@@ -244,7 +263,7 @@
 
         g.select("rect")
           .attr("height", function(d) { return c; })
-          .attr("fill", function(d) {return d.highlight ? "#E600E6" : colorHash(d.name); })
+          .attr("fill", function(d) { return colorMapper(d); })
           .style("visibility", function(d) {return d.dummy ? "hidden" : "visible";});
 
         if (!tooltip)
@@ -261,8 +280,6 @@
 
         g.on('click', zoom);
 
-
-
         g.exit().remove();
 
         g.on('mouseover', function(d) {
@@ -276,6 +293,26 @@
             setDetails("");
           }
         });
+      });
+    }
+
+    function merge(data, samples) {
+      samples.forEach(function (sample) {
+        var node = _.find(data, function (element) {
+          return element.name === sample.name;
+        });
+
+        if (node) {
+          node.value += sample.value;
+          if (sample.children) {
+            if (!node.children) {
+              node.children = [];
+            }
+            merge(node.children, sample.children)
+          }
+        } else {
+          data.push(sample);
+        }
       });
     }
 
@@ -309,10 +346,10 @@
         // "creative" fix for node ordering when partition is called for the first time
         partition(data);
 
-        // first draw
-        update();
-
       });
+
+      // first draw
+      update();
     }
 
     chart.height = function (_) {
@@ -366,6 +403,12 @@
       return chart;
     };
 
+    chart.reversed = function (_) {
+      if (!arguments.length) { return reversed; }
+      reversed = _;
+      return chart;
+    };
+
     chart.label = function(_) {
       if (!arguments.length) { return labelFormat; }
       labelFormat = _;
@@ -373,10 +416,12 @@
     };
 
     chart.search = function(term) {
+      var searchResults = [];
       selection.each(function(data) {
-        searchTree(data, term);
+        searchResults = searchTree(data, term);
         update();
       });
+      return searchResults;
     };
 
     chart.clear = function() {
@@ -386,10 +431,36 @@
       });
     };
 
+    chart.zoomTo = function(d) {
+      zoom(d);
+    };
+
     chart.resetZoom = function() {
       selection.each(function (data) {
         zoom(data); // zoom to root
       });
+    };
+
+    chart.onClick = function(_) {
+      if (!arguments.length) {
+        return clickHandler;
+      }
+      clickHandler = _;
+      return chart;
+    };
+    
+    chart.merge = function(samples) {
+      selection.each(function (data) {
+        merge([data], [samples]);
+        augment(data);
+      });
+      update();
+    }
+    
+    chart.color = function(_) {
+      if (!arguments.length) { return colorMapper; }
+      colorMapper = _;
+      return chart;
     };
 
     return chart;
