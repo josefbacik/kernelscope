@@ -117,3 +117,25 @@ specified it will be used as the time weight. Specifying more than 2 fields
 will probably return something weird or error out.  Also you must only specify
 one category, otherwise you will only get one categories flamegraph back and
 it'll be random which one python finds first.
+
+# Get categories
+
+This is just a basic URL API, just open http://kernelscope/api/getcategories and
+you will get a json response in the following format
+
+column_type can currently be one of the following
+ - string: Just a normal string
+ - timestamp: A timestamp
+ - int: An integer
+ - stack: A stacktrace in the standard stacktrace format
+ - elapsed: A time in usecs, usually for the given stacktrace
+
+{
+  "categoryname": [
+    {
+      "name": "database column name",
+      "type": "column_type",
+      "prettyname": "A pretty name for the column",
+    }
+  ]
+}

@@ -100,13 +100,19 @@
       var elemlist = document.getElementById("elemSelect");
       var exprlist = document.getElementById("exprSelect");
       var exprs = [ "=", "<", "<=", ">", ">=", "!=", "contains" ];
+      var first = true;
 
       for (var key in categories) {
         if (categories.hasOwnProperty(key)) {
           catlist.appendChild(new Option(key, key));
-          for (var i = 0; i < categories[key].length; i++) {
-            elemlist.appendChild(new Option(categories[key][i], categories[key][i]));
+          if (!first) {
+            continue;
           }
+          for (var i = 0; i < categories[key].length; i++) {
+            elemlist.appendChild(new Option(categories[key][i]['prettyname'],
+                                            categories[key][i]['name']));
+          }
+          first = false;
         }
       }
       for (var i = 0; i < exprs.length; i++) {
