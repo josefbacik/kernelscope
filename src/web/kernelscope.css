@@ -3,8 +3,21 @@
   margin-right: 5px;
 }
 
-.queryform select {
+#filter {
+  margin-top: 5px;
+}
+
+.querycontainer {
   display: block;
-  box-sizing: border-box;
-  vertical-align: middle;
+  text-align: right;
+}
+
+#globalform {
+  display: flex;
+  justify-content: space-between;
+}
+
+.selectContainer {
+  display: flex;
+  justify-content: space-between;
 }
