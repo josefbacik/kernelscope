@@ -160,14 +160,6 @@
       condition["expr"] = form.elements["exprSelect"].value;
 
       category = catSelect.value;
-      for (var i = 0; i < form.length; i++) {
-        var input = form.elements[i];
-        if (input.id) {
-          if (!input.name.localeCompare('e')) {
-            elements.push(input.value);
-          }
-        }
-      }
 
       constraint['elements'] = elements;
       constraint['format'] = "flamegraph";
