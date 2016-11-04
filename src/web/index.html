@@ -16,8 +16,9 @@
             </div>
             <div class="selectContainer">
               <label for="displayType">Display Type</label>
-              <select id="displayType">
+              <select id="displayType" onchange="dataChange()">
                 <option value="flamegraph">Flame Graph</option>
+                <option value="table">Table</option>
               </select>
             </div>
           </div>
@@ -30,7 +31,7 @@
               <input id="constraintValue"></select>
             </div>
             <div>
-              <a href="javascript:submitForm()">Submit</a>
+              <a href="javascript:dataChange()">Submit</a>
             </div>
           </div>
         </div>
@@ -65,21 +66,39 @@
 
     flameGraph.tooltip(tip);
 
-    // Example on how to use custom labels
-    // var label = function(d) {
-    //  return "name: " + d.name + ", value: " + d.value;
-    // }
+    function generateConstraint(elements, format, limit) {
+      var data = {};
+      var category;
+      var constraint = {};
+      var catSelect = document.getElementById("categorySelect");
+      var elemSelect = document.getElementById("elemSelect");
+      var exprSelect = document.getElementById("exprSelect");
+      var constraintValue = document.getElementById("constraintValue");
+      var condition = {};
 
-    // flameGraph.label(label);
-    
-//    d3.json("stacks.json", function(error, data) {
-//      if (error) return console.warn(error);
-//      d3.select("#chart")
-//          .datum(data)
-//          .call(flameGraph);
-//    });
+      condition[elemSelect.value] = constraintValue.value;
+      condition["expr"] = exprSelect.value;
+
+      category = catSelect.value;
+
+      if (limit > 0) {
+        constraint['limit'] = limit;
+      }
+      constraint['elements'] = elements;
+      if (format.length > 0) {
+        constraint['format'] = format;
+      }
+      if (constraintValue.value) {
+        constraint['constraints'] = [ { "conditions": [ condition ] } ];
+      }
+      data[category] = constraint;
+      return data;
+    }
 
     function flameGraphQuery(data) {
+      var chartDiv = document.getElementById("chart");
+
+      chartDiv.innerHTML = "";
       var xhr = new XMLHttpRequest();
       xhr.open("POST", "/api", true);
       xhr.setRequestHeader('Content-type', 'application/json');
@@ -170,37 +189,68 @@
         }
         constraint["elements"] = [stack, elapsed];
         data[category.value] = constraint;
-        console.log(data);
         flameGraphQuery(data);
       };
       xhr.send(null);
 
     }
 
-    function submitForm() {
-      var data = {};
-      var category;
-      var constraint = {};
-      var form = document.getElementById("myform");
-      var catSelect = document.getElementById("categorySelect");
-      var elements = [ "stack", "elapsed" ];
-      var condition = {};
+    function generateTable() {
+      var chartDiv = document.getElementById("chart");
+      var tbl = document.createElement("table");
+      var tblBody = document.createElement("tbody");
+      var category = document.getElementById("categorySelect").value;
 
-      var elem = form.elements["elemSelect"].value;
-      var cond = form.elements["constraintValue"].value;
-      condition[elem] = cond;
-      condition["expr"] = form.elements["exprSelect"].value;
+      chartDiv.innerHTML = "";
 
-      category = catSelect.value;
-
-      constraint['elements'] = elements;
-      constraint['format'] = "flamegraph";
-      if (cond) {
-        constraint['constraints'] = [ { "conditions": [ condition ] } ];
+      var row = document.createElement("tr");
+      var headers = [];
+      for (var i = 0; i < categories[category].length; i++) {
+        headers.push(categories[category][i]['name']);
+        var th = document.createElement("th");
+        var thText = document.createTextNode(categories[category][i]['prettyname']);
+        th.appendChild(thText);
+        row.appendChild(th);
       }
-      data[category] = constraint;
+      tblBody.appendChild(row);
 
-      flameGraphQuery(data);
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", "/api");
+      xhr.setRequestHeader('Content-type', 'application/json');
+      xhr.onreadystatechange = function (e) {
+        if (xhr.readyState == 4) {
+          if (xhr.status == 200) {
+            var jsonResponse = JSON.parse(xhr.responseText);
+            for (var i = 0; i < jsonResponse[category].length; i++) {
+              var row = document.createElement("tr");
+              for (var c = 0; c < headers.length; c++) {
+                var td = document.createElement("td");
+                var tdText = document.createTextNode(jsonResponse[category][i][headers[c]]);
+                td.appendChild(tdText);
+                row.appendChild(td);
+              }
+              tblBody.appendChild(row);
+            }
+            tbl.appendChild(tblBody);
+            chartDiv.appendChild(tbl);
+          } else {
+            console.log("Error");
+          }
+        }
+      }
+
+      var str = JSON.stringify(generateConstraint(headers, "", 200));
+      xhr.send(str);
+    }
+
+    function dataChange() {
+      var displayType = document.getElementById("displayType");
+
+      if (!displayType.value.localeCompare('flamegraph')) {
+        flameGraphQuery(generateConstraint(['stack', 'elapsed'], "flamegraph", 0));
+      } else {
+        generateTable();
+      }
     }
     </script>
 

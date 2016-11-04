@@ -6,8 +6,16 @@ import json
 from os import curdir
 import argparse
 from Database import Database
+from datetime import datetime
 
 db = Database()
+
+def date_serial(obj):
+    if isinstance(obj, datetime):
+        serial = obj.isoformat()
+        return serial
+    raise TypeError ("Type not serializable")
+
 class KernelscopeService(BaseHTTPRequestHandler):
     def _handle_api(self):
         if self.path == "/api/getcategories":
@@ -69,7 +77,7 @@ class KernelscopeService(BaseHTTPRequestHandler):
         data = json.loads(json_data)
         print(data)
         response = KernelscopeCategories.load(db, data)
-        data = json.dumps(response)
+        data = json.dumps(response, default=date_serial)
         self.send_header('Content-Length', len(data))
         self.end_headers()
         self.wfile.write(data)

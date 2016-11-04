@@ -25,3 +25,13 @@
   display: flex;
   justify-content: space-between;
 }
+
+table {
+  width: 100%;
+}
+
+td {
+  max-width: 150px;
+  padding: 15px;
+  overflow: hidden;
+}
