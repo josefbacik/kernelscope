@@ -10,22 +10,28 @@
       <div class="containerchild" id="queryform">
         <div class="querycontainer">
           <div class="querychild" id="global">
-            <form id="globalform">
+            <div class="selectContainer">
               <label for="category">Category</label>
               <select id="categorySelect"></select>
-            </form>
+            </div>
+            <div class="selectContainer">
+              <label for="displayType">Display Type</label>
+              <select id="displayType">
+                <option value="flamegraph">Flame Graph</option>
+              </select>
+            </div>
           </div>
           <div class="querychild" id="filter">
-            <form class="queryform" action="/api" method="POST" id="myform">
-              <div class="selectContainer">
-                <select id="elemSelect"></select>
-                <select id="exprSelect"></select>
-              </div>
-              <div class="inputContainer">
-                <input id="constraintValue"></select>
-              </div>
-            </form>
-            <a href="javascript:submitForm()">Submit</a>
+            <div class="selectContainer">
+              <select id="elemSelect"></select>
+              <select id="exprSelect"></select>
+            </div>
+            <div class="inputContainer">
+              <input id="constraintValue"></select>
+            </div>
+            <div>
+              <a href="javascript:submitForm()">Submit</a>
+            </div>
           </div>
         </div>
       </div>
@@ -95,7 +101,6 @@
     }
 
     function generateQueryForm() {
-      var filterform = document.getElementById("myform");
       var catlist = document.getElementById("categorySelect");
       var elemlist = document.getElementById("elemSelect");
       var exprlist = document.getElementById("exprSelect");
@@ -123,14 +128,8 @@
     function initialLoad() {
       var data = {};
       var constraint = {};
-
-      constraint["format"] = "flamegraph";
-      constraint["elements"] = ["stack", "elapsed"];
-      data["offcputime"] = constraint;
-
-      flameGraphQuery(data);
-
       var xhr = new XMLHttpRequest();
+
       xhr.open("GET", "/api/getcategories");
       xhr.onreadystatechange = function (e) {
         if (xhr.readyState === 4) {
@@ -142,7 +141,40 @@
           }
         }
       };
+      xhr.onloadend = function (e) {
+        var type = document.getElementById("displayType");
+        var category = document.getElementById("categorySelect");
+
+        constraint["format"] = type.value;
+        constraint["elements"] = [];
+
+        var stack = "";
+        var elapsed = "";
+        for (var i = 0; i < categories[category.value].length; i++) {
+          var elem = categories[category.value][i];
+          if (elem.hasOwnProperty("type") && elem.hasOwnProperty("name")) {
+            if (stack.length == 0 && elem["type"] == "stack") {
+              stack = elem["name"];
+            }
+            if (elapsed.length == 0 && elem["type"] == "elapsed") {
+              elapsed = elem["name"];
+            }
+            if (elapsed.length > 0 && stack.length > 0) {
+              break;
+            }
+          }
+        }
+
+        if (elapsed.length == 0) {
+          elapsed = "count";
+        }
+        constraint["elements"] = [stack, elapsed];
+        data[category.value] = constraint;
+        console.log(data);
+        flameGraphQuery(data);
+      };
       xhr.send(null);
+
     }
 
     function submitForm() {

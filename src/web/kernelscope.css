@@ -9,12 +9,16 @@
 
 .querycontainer {
   display: block;
+}
+
+.querychild {
+  display: block;
   text-align: right;
 }
 
-#globalform {
-  display: flex;
-  justify-content: space-between;
+.inputContainer input {
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .selectContainer {
