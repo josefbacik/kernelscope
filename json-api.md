@@ -1,7 +1,7 @@
 # Generic events submitted to the logger from the profiled machine
 
-categoryname - Must be a valid category, so offcputime for now.
-columnX - A column name for that category
+ - categoryname: Must be a valid category, so offcputime for now.
+ - columnX: A column name for that category
 
 ```
 {
@@ -44,11 +44,11 @@ elapsed is in nanoseconds
 # Queries format, submitted to the query service by the visualizer
 
 categoryname - Must be a valid category, so offcputime for now.
-limit - The number of items to fetch, if not present it returns all of them
-elementN - Valid column names for the category
-expr - Must be "=", "<", "<=", ">", ">=", "!=", "contains"
-oper - Must be "and" or "or"
-format - Must be "list" or "flamegraph".  If not specified we assume "list".
+ - limit: The number of items to fetch, if not present it returns all of them
+ - elementN: Valid column names for the category
+ - expr: Must be "=", "<", "<=", ">", ">=", "!=", "contains"
+ - oper: Must be "and" or "or"
+ - format: Must be "list" or "flamegraph".  If not specified we assume "list".
 
 ```
 {
