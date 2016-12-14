@@ -59,12 +59,16 @@ developer, wrote it so it made sense to me.  If there are cleaner approaches I
 accept patches.  All you should have to do is add entry to two dicts at the top
 of src/KernelscopeCategories.py.  The format is the following
 
+```
 _categories['DATABASE TABLE NAME'] = [ {'name': 'COLUMN NAME 1', 'type':'TYPE', 'prettyname':'SOME PRETTY NAME TO DESCRIBE THE COLUMN'}]
+```
 
 TYPE has to be of one of the types described in json-api.txt.  _valid_columns
 must be just a dict of the tables column names, so in the following format
 
+```
 _valid_columns['DATABASE TABLE NAME'] = [ 'COLUMN NAME 1', 'COLUMN NAME 2' ]
+```
 
 Then your script can log with the proper dict values set and it'll log into the
 datbase properly and then the webapp should show the data properly.
