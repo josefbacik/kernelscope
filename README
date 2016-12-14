@@ -4,15 +4,15 @@ A service for logging and visualizing data from bpf scripts.
 
 For sqllite you do the following
 
-'''
+```
 cat kernelscope-sqlite.sql | sqllite3 yourdatabase.db
-'''
+```
 
 For mysql you can just run the following
 
-'''
+```
 mysql -u username -p < kernelscope-mysql.sql
-'''
+```
 
 # Start the logging daemon
 
@@ -20,10 +20,10 @@ This is the daemon that accepts connections from your hosts that want to log
 their trace data.  You need to point it at your database, the sqllite and mysql
 commands follow (use whichever one is relevant)
 
-'''
+```
 python KernelscopeService.py --mysql localhost --dbuser user --dbpassword password --dbname kernelscope 8080
 python KernelscopeLoggerService.py --sqlite kernelscope.db 8081
-'''
+```
 
 
 # Run the tracing tool on your target host
@@ -32,9 +32,9 @@ Currently the only script in this repo is offcputime.py, which is just Brendan
 Gregg's offcputime.py from bcc/tools/offcputime.py that has been modified to
 dump it's information into a kernelscope service.  You run it as follows
 
-'''
+```
 python offcputime.py --logger 'http://localhost:8080' --threshold 5000
-'''
+```
 
 This will log to the service running on localhost and will only log events that
 take longer than 5000 microseconds, and will send information to the service
@@ -45,10 +45,10 @@ once a minute.
 This is the read-only side of kernelscope that runs the webapp.  Simply run the
 following command for whichever database backend you are using
 
-'''
+```
 python KernelscopeService.py --mysql localhost --dbuser user --dbpassword password --dbname kernelscope 8080
 python KernelscopeService.py --sqlite kernelscope.db 8080
-'''
+```
 
 and then navigate your browser to the appropriate host and port.
 
