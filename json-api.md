@@ -3,6 +3,7 @@
 categoryname - Must be a valid category, so offcputime for now.
 columnX - A column name for that category
 
+```
 {
   "hostname": "destiny",
   "time": "2016-10-24 17:12:43.288693",
@@ -18,11 +19,13 @@ columnX - A column name for that category
       }
     ],
 }
+```
 
 # Offcputimecategory
 
 elapsed is in nanoseconds
 
+```
 {
   "hostname": "destiny",
   "time": "2016-10-24 17:12:43.288693",
@@ -36,6 +39,7 @@ elapsed is in nanoseconds
       }
     ]
 }
+```
 
 # Queries format, submitted to the query service by the visualizer
 
@@ -46,6 +50,7 @@ expr - Must be "=", "<", "<=", ">", ">=", "!=", "contains"
 oper - Must be "and" or "or"
 format - Must be "list" or "flamegraph".  If not specified we assume "list".
 
+```
 {
   "categoryname":
     {
@@ -70,9 +75,11 @@ format - Must be "list" or "flamegraph".  If not specified we assume "list".
         ]
       }
 }
+```
 
 The results will be in the following format for "format": "list"
 
+```
 {
   "categoryname": [
     {
@@ -82,9 +89,11 @@ The results will be in the following format for "format": "list"
     },
   ]
 }
+```
 
 The results will be in the following format for "format": "flamegraph"
 
+```
 {
   "name": "sys_write",
   "value": 123456,
@@ -105,6 +114,7 @@ The results will be in the following format for "format": "flamegraph"
     }
   ]
 }
+```
 
 This is meant to be used in conjunction with one of the d3 javascript such as
 
@@ -130,6 +140,7 @@ column_type can currently be one of the following
  - stack: A stacktrace in the standard stacktrace format
  - elapsed: A time in usecs, usually for the given stacktrace
 
+```
 {
   "categoryname": [
     {
@@ -139,3 +150,4 @@ column_type can currently be one of the following
     }
   ]
 }
+```
