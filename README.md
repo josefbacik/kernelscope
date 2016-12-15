@@ -1,5 +1,8 @@
 A service for logging and visualizing data from bpf scripts.
 
+![Flame Graph](flamegraph.png)
+![Table](table.png)
+
 # Setup the database
 
 For sqllite you do the following
