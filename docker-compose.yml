@@ -1,0 +1,9 @@
+version: '2'
+services:
+  kernelscope:
+    image: qnib/kernelscope
+    hostname: kernelscope
+    container_name: kernelscope
+    ports:
+     - 8081:8081
+    privileged: true
