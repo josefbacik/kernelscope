@@ -5,10 +5,10 @@ A service for logging and visualizing data from bpf scripts.
 
 # Setup the database
 
-For sqllite you do the following
+For sqlite you do the following
 
 ```
-cat kernelscope-sqlite.sql | sqllite3 yourdatabase.db
+cat kernelscope-sqlite.sql | sqlite3 yourdatabase.db
 ```
 
 For mysql you can just run the following
