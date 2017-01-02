@@ -24,7 +24,7 @@ their trace data.  You need to point it at your database, the sqllite and mysql
 commands follow (use whichever one is relevant)
 
 ```
-python KernelscopeService.py --mysql localhost --dbuser user --dbpassword password --dbname kernelscope 8080
+python KernelscopeLoggerService.py --mysql localhost --dbuser user --dbpassword password --dbname kernelscope 8081
 python KernelscopeLoggerService.py --sqlite kernelscope.db 8081
 ```
 
@@ -36,7 +36,7 @@ Gregg's offcputime.py from bcc/tools/offcputime.py that has been modified to
 dump it's information into a kernelscope service.  You run it as follows
 
 ```
-python offcputime.py --logger 'http://localhost:8080' --threshold 5000
+python offcputime.py --logger 'http://localhost:8081' --threshold 5000
 ```
 
 This will log to the service running on localhost and will only log events that
