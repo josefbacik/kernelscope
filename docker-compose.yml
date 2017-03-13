@@ -1,0 +1,13 @@
+version: '2'
+services:
+  kernelscope:
+    image: qnib/kernelscope
+    hostname: kernelscope
+    container_name: kernelscope
+    volumes:
+     - /lib/modules:/lib/modules:ro
+     - /usr/src:/usr/src:ro
+     - /etc/localtime:/etc/localtime:ro
+    ports:
+     - 8080:8080
+    privileged: true
